@@ -1,9 +1,9 @@
 # insv-to-yt
 
-Convert Insta360 `.insv` videos to mp4 that can be uploaded to youtube as 360
+Convert Insta360 `.insv` videos to `.mp4` that can be uploaded to youtube as 360
 video.
 
-Insta360 videos are `.insv` files which are mp4 in fisheye format. You need 2
+Insta360 videos are `.insv` files which are `.mp4` in fisheye format. You need 2
 files to reconstruct the full 360 degree range.
 
 Youtube requires a `.mp4` with custom metadata in an equirectangular projection.
@@ -43,4 +43,5 @@ python spatialmedia -i intermediate2.mp4 output.mp3
 This works, however the concatenation of the videos leaves a nasty visible join
 between the two 180 videos.
 
+![bad join](./media/bad-join.png)
 
