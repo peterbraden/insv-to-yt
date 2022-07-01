@@ -19,3 +19,28 @@ Out of scope for the moment:
 
 - Reprojecting the focus of the video.
 
+# Using FFMpeg
+
+The most obvious approach would be to use the out of the box filters from
+ffmpeg. ie:
+
+```sh
+
+# Join videos side by side
+ffmpeg -i $VIDEO1 -i $VIDEO2 \
+  -filter_complex "[0:v][1:v]hstack=inputs=2[v]; [0:a][1:a]amerge[a]" \
+  -map "[v]" -map "[a]" \
+  -ac 2 intermediate.mp4
+
+# Remap to equirectangular
+ffmpeg -i intermediate.mp4 -vf v360=dfisheye:e:yaw=-90 intermediate2.mp4
+
+# Use youtube cli to add metadata
+python spatialmedia -i intermediate2.mp4 output.mp3
+
+```
+
+This works, however the concatenation of the videos leaves a nasty visible join
+between the two 180 videos.
+
+
