@@ -1,0 +1,3 @@
+[submodule "spatialmedia"]
+	path = spatialmedia
+	url = git@github.com:google/spatial-media.git
