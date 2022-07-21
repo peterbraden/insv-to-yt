@@ -12,3 +12,4 @@ log = "0.4"
 wgpu = "0.13"
 pollster = "0.2"
 bytemuck = { version = "1.4", features = [ "derive" ] }
+ffmpeg-next = "5.0.3"
