@@ -18,6 +18,7 @@ We therefore need to:
 Out of scope for the moment:
 
 - Reprojecting the focus of the video.
+- Stabilisation, or any post processing
 
 # Using FFMpeg
 
