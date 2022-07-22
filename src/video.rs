@@ -64,7 +64,7 @@ impl FrameExtractor {
      }
 
     pub fn get_frame(&mut self) -> Result<(Video, usize), ffmpeg::Error> {
-        info!("Get frame {}", self.frame_index);
+        //info!("Get frame {}", self.frame_index);
         let mut decoded = Video::empty();
         self.decoder.receive_frame(&mut decoded)?;
         let mut rgb_frame = Video::empty();
@@ -86,14 +86,13 @@ impl DualFrameExtractor {
             left: FrameExtractor::new(left)?,
             right: FrameExtractor::new(right)?,
         })
-
     }
 
     pub fn get_frame(&mut self) -> Result<(Video, Video, usize), ffmpeg::Error> {
         let (f_left, ind_left) = self.left.get_frame()?;
         let (f_right, ind_right) = self.right.get_frame()?;
-        
         assert!(ind_left == ind_right);
+        info!("Get frames {}", ind_left );
         return Ok((f_left, f_right, ind_left));
     }
 }
