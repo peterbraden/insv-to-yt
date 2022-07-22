@@ -1,10 +1,7 @@
-
-use ffmpeg::format::{input, Pixel};
+use ffmpeg::format::{Pixel};
 use ffmpeg::media::Type;
 use ffmpeg::software::scaling::{context::Context, flag::Flags};
 use ffmpeg::util::frame::video::Video;
-use std::fs::File;
-use std::io::prelude::*;
 use log::{info};
 
 pub struct FrameExtractor {
@@ -16,7 +13,7 @@ pub struct FrameExtractor {
  * Patch over the horrible ffmpeg video API to allow us to grab a frame from a video
  */
 impl FrameExtractor {
-    pub fn new(filename: String) -> Result<Self, ffmpeg::Error> {
+    pub fn new(filename: &str) -> Result<Self, ffmpeg::Error> {
         let mut ictx = ffmpeg::format::input(&filename)?;
         let input = ictx
             .streams()
@@ -41,20 +38,18 @@ impl FrameExtractor {
 
         for (stream, packet) in ictx.packets() {
             if stream.index() == video_stream_index {
-                info!("Send packet");
-                loop {
-                    match decoder.send_packet(&packet) {
-                        Ok(()) => {break;},
-                        Err(e) => {
-                            if e == (ffmpeg::Error::Other { errno: ffmpeg::util::error::EAGAIN }) {
-                                info!("EAGAIN");
-                                continue
-                            }
-                            return Err(e);
+                //info!("Send packet");
+                match decoder.send_packet(&packet) {
+                    Ok(()) => {},
+                    Err(e) => {
+                        if e == (ffmpeg::Error::Other { errno: ffmpeg::util::error::EAGAIN }) {
+                            //info!("EAGAIN - send another packet");
+                        } else {
                             info!("ERR {:?}", e);
+                            return Err(e);
                         }
-                    };
-                }
+                    }
+                };
             }
         }
         decoder.send_eof()?;
@@ -68,15 +63,40 @@ impl FrameExtractor {
         )
      }
 
-    pub fn get_frame(&mut self) -> Result<Video, ffmpeg::Error> {
+    pub fn get_frame(&mut self) -> Result<(Video, usize), ffmpeg::Error> {
         info!("Get frame {}", self.frame_index);
         let mut decoded = Video::empty();
         self.decoder.receive_frame(&mut decoded)?;
         let mut rgb_frame = Video::empty();
         self.scaler.run(&decoded, &mut rgb_frame)?;
         self.frame_index += 1;
-        return Ok(rgb_frame);
+        return Ok((rgb_frame, self.frame_index - 1));
     }
 }
+
+
+pub struct DualFrameExtractor {
+    left: FrameExtractor,
+    right: FrameExtractor,
+}
+
+impl DualFrameExtractor {
+    pub fn new(left: &str, right: &str) -> Result<Self, ffmpeg::Error> {
+        Ok(DualFrameExtractor {
+            left: FrameExtractor::new(left)?,
+            right: FrameExtractor::new(right)?,
+        })
+
+    }
+
+    pub fn get_frame(&mut self) -> Result<(Video, Video, usize), ffmpeg::Error> {
+        let (f_left, ind_left) = self.left.get_frame()?;
+        let (f_right, ind_right) = self.right.get_frame()?;
+        
+        assert!(ind_left == ind_right);
+        return Ok((f_left, f_right, ind_left));
+    }
+}
+
 
 
